@@ -1,0 +1,2384 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Petualangan Pola Gambar: Misi Harta Karun Hutan Ajaib</title>
+    <!-- Google Fonts: Fredoka & Nunito -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --font-title: 'Fredoka', cursive, sans-serif;
+            --font-body: 'Nunito', sans-serif;
+            --gold-grad: linear-gradient(180deg, #FFE066 0%, #FFB300 55%, #E67E00 100%);
+            --green-grad: linear-gradient(180deg, #6EE7B7 0%, #10B981 55%, #047857 100%);
+            --blue-grad: linear-gradient(180deg, #7DD3FC 0%, #0EA5E9 55%, #0369A1 100%);
+            --orange-grad: linear-gradient(180deg, #FDBA74 0%, #F97316 55%, #C2410C 100%);
+            --purple-grad: linear-gradient(180deg, #D8B4FE 0%, #9333EA 55%, #6B21A8 100%);
+            --wood-bg: linear-gradient(180deg, #FFFBF0 0%, #FDE68A 100%);
+            --wood-border: #92400E;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: var(--font-body);
+            background-color: #064E3B;
+            color: #3E2723;
+        }
+
+        /* Background Canvas (Pixar 3D Tropical Forest Scene) */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* Confetti & Particle Overlay Canvas */
+        #fx-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 50;
+            pointer-events: none;
+        }
+
+        /* Main UI Wrapper */
+        #app-container {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px 36px 16px;
+            overflow-y: auto;
+        }
+
+        /* Top Bar Controls */
+        .top-bar {
+            width: 100%;
+            max-width: 960px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 20;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        .hud-stats {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .pill-badge {
+            background: rgba(255, 255, 255, 0.92);
+            border: 3px solid #D97706;
+            border-radius: 50px;
+            padding: 5px 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: var(--font-title);
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: #78350F;
+            box-shadow: 0 4px 0 #B45309, 0 6px 12px rgba(0,0,0,0.25), inset 0 2px 3px #FFF;
+        }
+
+        /* Pixar 3D Style Buttons */
+        .btn-3d {
+            font-family: var(--font-title);
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: #FFFFFF;
+            text-shadow: 0 2px 3px rgba(0, 0, 0, 0.35);
+            border: none;
+            border-radius: 50px;
+            padding: 12px 28px;
+            cursor: pointer;
+            position: relative;
+            transition: transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.12s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-3d::before {
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 12px;
+            right: 12px;
+            height: 38%;
+            background: linear-gradient(180deg, rgba(255,255,255,0.65) 0%, rgba(255,255,255,0.05) 100%);
+            border-radius: 40px;
+            pointer-events: none;
+        }
+
+        .btn-green {
+            background: var(--green-grad);
+            box-shadow: 0 6px 0 #065F46, 0 10px 20px rgba(0,0,0,0.3);
+        }
+        .btn-green:active {
+            transform: translateY(5px);
+            box-shadow: 0 1px 0 #065F46, 0 4px 8px rgba(0,0,0,0.25);
+        }
+
+        .btn-gold {
+            background: var(--gold-grad);
+            color: #5C2804;
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.7);
+            box-shadow: 0 6px 0 #B45309, 0 10px 20px rgba(0,0,0,0.3);
+        }
+        .btn-gold:active {
+            transform: translateY(5px);
+            box-shadow: 0 1px 0 #B45309, 0 4px 8px rgba(0,0,0,0.25);
+        }
+
+        .btn-blue {
+            background: var(--blue-grad);
+            box-shadow: 0 6px 0 #075985, 0 10px 20px rgba(0,0,0,0.3);
+        }
+        .btn-blue:active {
+            transform: translateY(5px);
+            box-shadow: 0 1px 0 #075985, 0 4px 8px rgba(0,0,0,0.25);
+        }
+
+        .btn-orange {
+            background: var(--orange-grad);
+            box-shadow: 0 6px 0 #9A3412, 0 10px 20px rgba(0,0,0,0.3);
+        }
+        .btn-orange:active {
+            transform: translateY(5px);
+            box-shadow: 0 1px 0 #9A3412, 0 4px 8px rgba(0,0,0,0.25);
+        }
+
+        .btn-icon {
+            width: 48px;
+            height: 48px;
+            padding: 0;
+            border-radius: 50%;
+            font-size: 1.35rem;
+        }
+
+        /* Screen Management */
+        .screen {
+            display: none;
+            width: 100%;
+            max-width: 920px;
+            margin: auto;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.92) translateY(15px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        @keyframes floatSlow {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-9px); }
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.6)); }
+            50% { transform: scale(1.06); filter: drop-shadow(0 0 18px rgba(251, 191, 36, 1)); }
+        }
+
+        @keyframes spinCoin {
+            0% { transform: rotateY(0deg); }
+            50% { transform: rotateY(180deg) scale(1.1); }
+            100% { transform: rotateY(360deg); }
+        }
+
+        /* Pixar 3D Wood & Parchment Card */
+        .card-3d {
+            background: var(--wood-bg);
+            border: 5px solid #B45309;
+            border-radius: 32px;
+            padding: 24px;
+            width: 100%;
+            box-shadow: 
+                0 10px 0 #78350F,
+                0 20px 35px rgba(0, 0, 0, 0.45),
+                inset 0 4px 8px rgba(255, 255, 255, 0.9);
+            position: relative;
+            text-align: center;
+        }
+
+        /* Title Screen Specific */
+        .game-logo-box {
+            background: linear-gradient(180deg, #F59E0B 0%, #B45309 100%);
+            border: 5px solid #FDE68A;
+            border-radius: 36px;
+            padding: 18px 28px;
+            box-shadow: 0 10px 0 #78350F, 0 18px 30px rgba(0,0,0,0.45), inset 0 4px 8px rgba(255,255,255,0.6);
+            margin-bottom: 14px;
+            max-width: 720px;
+            animation: floatSlow 4s ease-in-out infinite;
+        }
+
+        .game-title {
+            font-family: var(--font-title);
+            font-size: clamp(1.7rem, 4.5vw, 2.8rem);
+            color: #FFFBEB;
+            text-shadow: 0 4px 0 #78350F, 0 6px 12px rgba(0,0,0,0.4);
+            line-height: 1.15;
+            letter-spacing: 0.5px;
+        }
+
+        .game-subtitle {
+            font-family: var(--font-title);
+            font-size: clamp(1rem, 2.5vw, 1.45rem);
+            color: #FEF08A;
+            text-shadow: 0 2px 0 #78350F;
+            margin-top: 6px;
+        }
+
+        /* 3D Characters Stage */
+        .characters-stage {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            gap: 16px;
+            margin: 8px 0 16px 0;
+            height: 170px;
+            position: relative;
+        }
+
+        .char-svg {
+            filter: drop-shadow(0 12px 14px rgba(0,0,0,0.38));
+            animation: floatSlow 3.2s ease-in-out infinite;
+        }
+
+        .char-svg.companion {
+            animation-delay: -1.5s;
+        }
+
+        /* Credit Badge */
+        .credit-pill {
+            background: linear-gradient(90deg, #78350F, #92400E, #78350F);
+            color: #FDE68A;
+            border: 2px solid #F59E0B;
+            padding: 6px 20px;
+            border-radius: 30px;
+            font-family: var(--font-title);
+            font-size: 1rem;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            display: inline-block;
+            margin-top: 12px;
+        }
+
+        /* Persistent Footer Credit */
+        .persistent-footer {
+            position: fixed;
+            bottom: 6px;
+            right: 14px;
+            left: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            pointer-events: none;
+            z-index: 35;
+            font-family: var(--font-title);
+            font-size: 0.9rem;
+            color: #FEF3C7;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.85);
+        }
+
+        .persistent-footer span {
+            background: rgba(20, 83, 45, 0.78);
+            border: 1.5px solid rgba(253, 224, 71, 0.5);
+            padding: 4px 14px;
+            border-radius: 20px;
+            backdrop-filter: blur(4px);
+        }
+
+        /* Map Screen (5 Adventure Posts) */
+        .map-wrapper {
+            position: relative;
+            width: 100%;
+            height: 360px;
+            background: radial-gradient(circle at 50% 40%, #A7F3D0 0%, #34D399 45%, #059669 100%);
+            border-radius: 26px;
+            border: 4px solid #047857;
+            box-shadow: inset 0 6px 16px rgba(0,0,0,0.25);
+            overflow: hidden;
+            margin: 12px 0;
+        }
+
+        .map-svg-layer {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .map-node {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            width: 86px;
+            height: 86px;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 5;
+        }
+
+        .map-node:hover:not(.locked) {
+            transform: translate(-50%, -56%) scale(1.08);
+        }
+
+        .map-node-circle {
+            width: 68px;
+            height: 68px;
+            border-radius: 50%;
+            background: var(--gold-grad);
+            border: 4px solid #FFF;
+            box-shadow: 0 6px 0 #B45309, 0 8px 16px rgba(0,0,0,0.35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            position: relative;
+        }
+
+        .map-node.unlocked .map-node-circle {
+            animation: pulseGlow 2s infinite;
+        }
+
+        .map-node.completed .map-node-circle {
+            background: var(--green-grad);
+            box-shadow: 0 6px 0 #065F46, 0 8px 16px rgba(0,0,0,0.35);
+        }
+
+        .map-node.locked {
+            cursor: not-allowed;
+            filter: grayscale(0.85) opacity(0.85);
+        }
+
+        .map-node.locked .map-node-circle {
+            background: linear-gradient(180deg, #9CA3AF 0%, #4B5563 100%);
+            box-shadow: 0 6px 0 #1F2937, 0 8px 15px rgba(0,0,0,0.3);
+        }
+
+        .map-node-label {
+            margin-top: 6px;
+            background: rgba(120, 53, 15, 0.92);
+            color: #FEF3C7;
+            font-family: var(--font-title);
+            font-size: 0.78rem;
+            padding: 3px 10px;
+            border-radius: 12px;
+            white-space: nowrap;
+            border: 1.5px solid #FDE68A;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+
+        .map-node-stars {
+            position: absolute;
+            top: -12px;
+            display: flex;
+            gap: 2px;
+            font-size: 0.85rem;
+            filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5));
+        }
+
+        /* Quiz / Question Screen */
+        .quiz-header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .level-badge-banner {
+            background: linear-gradient(90deg, #92400E, #B45309);
+            color: #FEF3C7;
+            padding: 6px 18px;
+            border-radius: 20px;
+            font-family: var(--font-title);
+            font-size: 1.05rem;
+            border: 2px solid #FBBF24;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .question-prompt-box {
+            background: #FFFFFF;
+            border: 3px solid #F59E0B;
+            border-radius: 22px;
+            padding: 12px 18px;
+            margin-bottom: 14px;
+            box-shadow: inset 0 2px 6px rgba(245, 158, 11, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .question-text {
+            font-family: var(--font-title);
+            font-size: clamp(1.05rem, 2.5vw, 1.35rem);
+            color: #78350F;
+            text-align: left;
+            flex: 1;
+        }
+
+        /* Pattern Sequence Display Slot */
+        .pattern-stage {
+            background: linear-gradient(180deg, #ECFDF5 0%, #D1FAE5 100%);
+            border: 4px solid #10B981;
+            border-radius: 26px;
+            padding: 20px 14px;
+            margin-bottom: 16px;
+            box-shadow: inset 0 4px 10px rgba(0,0,0,0.12), 0 4px 0 #059669;
+            position: relative;
+            overflow-x: auto;
+        }
+
+        .pattern-items-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            min-height: 92px;
+        }
+
+        .pattern-slot {
+            width: 78px;
+            height: 78px;
+            background: #FFFFFF;
+            border-radius: 20px;
+            border: 3px solid #A7F3D0;
+            box-shadow: 0 5px 0 #6EE7B7, 0 8px 14px rgba(0,0,0,0.12);
+            display: flex;
+             flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            transition: transform 0.25s ease, border-color 0.25s ease;
+        }
+
+        .pattern-slot.missing-slot {
+            background: linear-gradient(180deg, #FEF3C7 0%, #FDE68A 100%);
+            border: 3.5px dashed #D97706;
+            box-shadow: 0 5px 0 #B45309, 0 8px 15px rgba(217, 119, 6, 0.25);
+            animation: pulseGlow 1.8s infinite;
+        }
+
+        .slot-index-num {
+            position: absolute;
+            bottom: 2px;
+            right: 6px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            color: #047857;
+            opacity: 0.75;
+        }
+
+        /* Hint Highlight Group Ring */
+        .pattern-slot.hint-group-0 {
+            border-color: #EF4444;
+            background: #FEF2F2;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.35), 0 5px 0 #DC2626;
+        }
+        .pattern-slot.hint-group-1 {
+            border-color: #3B82F6;
+            background: #EFF6FF;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.35), 0 5px 0 #2563EB;
+        }
+        .pattern-slot.hint-group-2 {
+            border-color: #8B5CF6;
+            background: #F5F3FF;
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.35), 0 5px 0 #7C3AED;
+        }
+
+        .hint-banner {
+            display: none;
+            background: #FEF3C7;
+            border: 2px solid #F59E0B;
+            color: #92400E;
+            border-radius: 16px;
+            padding: 8px 14px;
+            margin-top: 12px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            animation: popIn 0.3s ease;
+        }
+
+        /* Answer Choices Grid */
+        .choices-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+            width: 100%;
+            max-width: 680px;
+            margin: 0 auto;
+        }
+
+        .choice-btn {
+            background: linear-gradient(180deg, #FFFFFF 0%, #F3F4F6 100%);
+            border: 4px solid #D97706;
+            border-radius: 24px;
+            height: 100px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 7px 0 #92400E, 0 10px 18px rgba(0,0,0,0.22);
+            transition: transform 0.14s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.2s;
+            position: relative;
+        }
+
+        .choice-btn:hover {
+            transform: translateY(-4px);
+            background: linear-gradient(180deg, #FFFBEB 0%, #FEF3C7 100%);
+        }
+
+        .choice-btn:active {
+            transform: translateY(5px);
+            box-shadow: 0 2px 0 #92400E, 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .choice-btn.correct-choice {
+            background: linear-gradient(180deg, #D1FAE5 0%, #6EE7B7 100%);
+            border-color: #059669;
+            box-shadow: 0 7px 0 #047857;
+        }
+
+        .choice-btn.wrong-choice {
+            background: linear-gradient(180deg, #FEE2E2 0%, #FCA5A5 100%);
+            border-color: #DC2626;
+            box-shadow: 0 7px 0 #991B1B;
+            animation: shakeHorizontal 0.4s ease;
+        }
+
+        @keyframes shakeHorizontal {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            50% { transform: translateX(8px); }
+            75% { transform: translateX(-6px); }
+        }
+
+        /* Feedback Popup Message Box */
+        .feedback-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(3px);
+            z-index: 40;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        .feedback-overlay.show {
+            display: flex;
+            animation: popIn 0.25s ease;
+        }
+
+        .feedback-card {
+            background: var(--wood-bg);
+            border: 5px solid #B45309;
+            border-radius: 30px;
+            padding: 24px;
+            max-width: 480px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 12px 0 #78350F, 0 20px 40px rgba(0,0,0,0.5);
+        }
+
+        /* Map Pieces Progress Tray */
+        .map-pieces-tray {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            background: rgba(255,255,255,0.9);
+            padding: 4px 12px;
+            border-radius: 30px;
+            border: 2.5px solid #059669;
+        }
+
+        .map-piece-icon {
+            width: 22px;
+            height: 22px;
+            border-radius: 6px;
+            background: #D1D5DB;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            transition: transform 0.3s ease, background 0.3s ease;
+        }
+
+        .map-piece-icon.collected {
+            background: linear-gradient(135deg, #34D399, #059669);
+            color: white;
+            box-shadow: 0 2px 5px rgba(5, 150, 105, 0.5);
+            transform: scale(1.1);
+        }
+
+        /* Responsive Tweaks for Mobile & Tablet */
+        @media (max-width: 680px) {
+            .choices-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+            .choice-btn {
+                height: 86px;
+            }
+            .pattern-slot {
+                width: 62px;
+                height: 62px;
+            }
+            .card-3d {
+                padding: 16px;
+                border-radius: 24px;
+            }
+            .characters-stage {
+                height: 135px;
+            }
+            .map-wrapper {
+                height: 310px;
+            }
+            .map-node-circle {
+                width: 56px;
+                height: 56px;
+                font-size: 1.45rem;
+            }
+            .btn-3d {
+                padding: 10px 20px;
+                font-size: 1.05rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Background Pixar-style Tropical Forest Canvas -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Particle & Confetti Canvas -->
+    <canvas id="fx-canvas"></canvas>
+
+    <!-- Main Interactive Application Container -->
+    <div id="app-container">
+
+        <!-- TOP BAR (HUD & Sound Controls) -->
+        <header class="top-bar">
+            <div class="hud-stats" id="hud-panel" style="visibility: hidden;">
+                <button class="btn-3d btn-orange btn-icon" id="btn-back-map" title="Peta Petualangan" onclick="Game.showMapScreen()">
+                    🗺️
+                </button>
+                <div class="pill-badge" title="Nyawa Penjelajah">
+                    <span id="hud-hearts">❤️❤️❤️</span>
+                </div>
+                <div class="pill-badge" title="Skor Poin">
+                    <span>⭐</span> <span id="hud-score">0</span>
+                </div>
+                <div class="pill-badge" title="Koin Emas">
+                    <span style="display:inline-block; animation: spinCoin 3s infinite linear;">🪙</span>
+                    <span id="hud-coins">0</span>
+                </div>
+                <div class="map-pieces-tray" title="Potongan Peta Harta Karun">
+                    <span style="font-size:0.8rem; font-weight:800; color:#065F46; margin-right:3px;">Peta:</span>
+                    <div class="map-piece-icon" id="piece-0">🧩</div>
+                    <div class="map-piece-icon" id="piece-1">🧩</div>
+                    <div class="map-piece-icon" id="piece-2">🧩</div>
+                    <div class="map-piece-icon" id="piece-3">🧩</div>
+                    <div class="map-piece-icon" id="piece-4">🧩</div>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 8px; margin-left: auto;">
+                <button class="btn-3d btn-gold btn-icon" id="btn-sound" title="Suara Nyala/Mati" onclick="SoundFX.toggleMute()">
+                    🔊
+                </button>
+            </div>
+        </header>
+
+        <!-- ==================== 1. LAYAR JUDUL ==================== -->
+        <section id="screen-title" class="screen active">
+            <div class="game-logo-box">
+                <h1 class="game-title">PETUALANGAN POLA GAMBAR</h1>
+                <p class="game-subtitle">✨ Misi Harta Karun Hutan Ajaib ✨</p>
+            </div>
+
+            <!-- Pixar 3D Style Explorer Kid (Leo) & Parrot Companion (Koko) -->
+            <div class="characters-stage">
+                <!-- Explorer Kid SVG with 3D Soft Shading -->
+                <svg class="char-svg" width="155" height="165" viewBox="0 0 160 170">
+                    <defs>
+                        <radialGradient id="skinGrad" cx="45%" cy="40%" r="55%">
+                            <stop offset="0%" stop-color="#FFDFC4"/>
+                            <stop offset="70%" stop-color="#F0B892"/>
+                            <stop offset="100%" stop-color="#D48B62"/>
+                        </radialGradient>
+                        <linearGradient id="hatGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" stop-color="#FBBF24"/>
+                            <stop offset="60%" stop-color="#D97706"/>
+                            <stop offset="100%" stop-color="#92400E"/>
+                        </linearGradient>
+                        <linearGradient id="shirtGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" stop-color="#34D399"/>
+                            <stop offset="100%" stop-color="#059669"/>
+                        </linearGradient>
+                        <radialGradient id="eyeShine" cx="35%" cy="35%" r="60%">
+                            <stop offset="0%" stop-color="#4B2E1E"/>
+                            <stop offset="100%" stop-color="#1C0F08"/>
+                        </radialGradient>
+                    </defs>
+                    <!-- Shadow under feet -->
+                    <ellipse cx="80" cy="160" rx="45" ry="8" fill="rgba(0,0,0,0.3)"/>
+                    <!-- Backpack -->
+                    <rect x="38" y="92" width="84" height="48" rx="18" fill="#B45309"/>
+                    <!-- Body / Explorer Vest -->
+                    <path d="M50 95 Q80 88 110 95 L118 145 Q80 152 42 145 Z" fill="url(#shirtGrad)"/>
+                    <path d="M52 95 L68 95 L65 145 L46 145 Z" fill="#D97706"/>
+                    <path d="M108 95 L92 95 L95 145 L114 145 Z" fill="#D97706"/>
+                    <!-- Red neckerchief -->
+                    <path d="M56 94 Q80 112 104 94 L94 108 L80 118 L66 108 Z" fill="#EF4444"/>
+                    <!-- Waving Arm -->
+                    <path d="M108 102 Q135 88 138 68" stroke="url(#skinGrad)" stroke-width="16" stroke-linecap="round" fill="none"/>
+                    <circle cx="138" cy="65" r="10" fill="url(#skinGrad)"/>
+                    <!-- Left Arm -->
+                    <path d="M52 102 Q34 115 40 132" stroke="url(#skinGrad)" stroke-width="15" stroke-linecap="round" fill="none"/>
+                    <!-- Head -->
+                    <circle cx="80" cy="64" r="36" fill="url(#skinGrad)"/>
+                    <!-- Ears -->
+                    <circle cx="43" cy="66" r="9" fill="url(#skinGrad)"/>
+                    <circle cx="117" cy="66" r="9" fill="url(#skinGrad)"/>
+                    <!-- Rosy 3D Cheeks -->
+                    <ellipse cx="58" cy="72" rx="7" ry="4.5" fill="#F87171" opacity="0.55"/>
+                    <ellipse cx="102" cy="72" rx="7" ry="4.5" fill="#F87171" opacity="0.55"/>
+                    <!-- Big Pixar Expressive Eyes -->
+                    <ellipse cx="66" cy="60" rx="7.5" ry="9" fill="#FFFFFF"/>
+                    <ellipse cx="94" cy="60" rx="7.5" ry="9" fill="#FFFFFF"/>
+                    <circle cx="67" cy="61" r="5.5" fill="url(#eyeShine)"/>
+                    <circle cx="93" cy="61" r="5.5" fill="url(#eyeShine)"/>
+                    <!-- Eye Catchlights -->
+                    <circle cx="65" cy="58" r="2.2" fill="#FFFFFF"/>
+                    <circle cx="91" cy="58" r="2.2" fill="#FFFFFF"/>
+                    <circle cx="69" cy="63" r="1" fill="#FFFFFF"/>
+                    <circle cx="95" cy="63" r="1" fill="#FFFFFF"/>
+                    <!-- Eyebrows -->
+                    <path d="M57 48 Q66 44 73 48" stroke="#5C3A21" stroke-width="3.2" stroke-linecap="round" fill="none"/>
+                    <path d="M87 48 Q94 44 103 48" stroke="#5C3A21" stroke-width="3.2" stroke-linecap="round" fill="none"/>
+                    <!-- Cute Nose -->
+                    <ellipse cx="80" cy="66" rx="4" ry="3" fill="#E09F75"/>
+                    <!-- Happy Smile -->
+                    <path d="M68 76 Q80 88 92 76 Z" fill="#991B1B"/>
+                    <path d="M72 81 Q80 86 88 81" fill="#FCA5A5"/>
+                    <!-- Hair tufts -->
+                    <path d="M48 44 Q65 32 82 40 Q98 32 112 45" fill="#5C3A21"/>
+                    <!-- Safari Explorer Hat -->
+                    <ellipse cx="80" cy="36" rx="52" ry="12" fill="url(#hatGrad)"/>
+                    <path d="M46 35 Q80 2 114 35 Z" fill="url(#hatGrad)"/>
+                    <path d="M48 31 Q80 37 112 31" stroke="#047857" stroke-width="6" fill="none"/>
+                </svg>
+
+                <!-- Cute 3D Macaw Parrot Companion (Koko) -->
+                <svg class="char-svg companion" width="115" height="135" viewBox="0 0 120 140">
+                    <defs>
+                        <radialGradient id="parrotBody" cx="40%" cy="35%" r="65%">
+                            <stop offset="0%" stop-color="#EF4444"/>
+                            <stop offset="70%" stop-color="#DC2626"/>
+                            <stop offset="100%" stop-color="#991B1B"/>
+                        </radialGradient>
+                        <linearGradient id="wingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#FBBF24"/>
+                            <stop offset="50%" stop-color="#10B981"/>
+                            <stop offset="100%" stop-color="#2563EB"/>
+                        </linearGradient>
+                    </defs>
+                    <ellipse cx="60" cy="130" rx="28" ry="6" fill="rgba(0,0,0,0.28)"/>
+                    <!-- Tail feathers -->
+                    <path d="M52 105 L42 132 L60 125 L75 132 L68 105 Z" fill="#2563EB"/>
+                    <!-- Main plump body -->
+                    <ellipse cx="60" cy="74" rx="32" ry="38" fill="url(#parrotBody)"/>
+                    <!-- Belly highlight -->
+                    <ellipse cx="60" cy="82" rx="20" ry="24" fill="#FCA5A5" opacity="0.35"/>
+                    <!-- Colorful Wings -->
+                    <path d="M28 65 Q12 85 26 105 Q40 92 36 70 Z" fill="url(#wingGrad)"/>
+                    <path d="M92 65 Q108 85 94 105 Q80 92 84 70 Z" fill="url(#wingGrad)"/>
+                    <!-- Head -->
+                    <circle cx="60" cy="42" r="26" fill="url(#parrotBody)"/>
+                    <!-- Feather crest -->
+                    <path d="M55 18 Q60 4 68 14 Q74 6 72 20" stroke="#EF4444" stroke-width="6" stroke-linecap="round" fill="none"/>
+                    <!-- White Eye Patch -->
+                    <ellipse cx="50" cy="40" rx="9" ry="11" fill="#FFFBEB"/>
+                    <ellipse cx="70" cy="40" rx="9" ry="11" fill="#FFFBEB"/>
+                    <circle cx="51" cy="40" r="5" fill="#1E293B"/>
+                    <circle cx="69" cy="40" r="5" fill="#1E293B"/>
+                    <circle cx="49" cy="38" r="2" fill="#FFFFFF"/>
+                    <circle cx="67" cy="38" r="2" fill="#FFFFFF"/>
+                    <!-- 3D Curved Golden Beak -->
+                    <path d="M50 48 Q60 42 70 48 Q66 64 60 66 Q54 64 50 48 Z" fill="#FBBF24"/>
+                    <path d="M53 56 Q60 62 67 56 Q64 65 60 66 Q56 65 53 56 Z" fill="#4B5563"/>
+                    <!-- Cute Feet -->
+                    <path d="M46 110 L40 120 M46 110 L46 121 M46 110 L52 120" stroke="#F59E0B" stroke-width="4" stroke-linecap="round"/>
+                    <path d="M74 110 L68 120 M74 110 L74 121 M74 110 L80 120" stroke="#F59E0B" stroke-width="4" stroke-linecap="round"/>
+                </svg>
+            </div>
+
+            <div class="card-3d" style="max-width: 600px; padding: 20px;">
+                <p style="font-size: 1.1rem; font-weight: 700; color: #78350F; margin-bottom: 16px;">
+                    Halo Penjelajah Cilik! Ayo bantu <b>Leo</b> dan burung beo <b>Koko</b> membuka 5 Pos Hutan Ajaib untuk menemukan <b>Peti Harta Karun Pola!</b> 🗺️💎
+                </p>
+                <div style="display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;">
+                    <button class="btn-3d btn-green" onclick="Game.startAdventure()">
+                        🚀 Mulai Petualangan
+                    </button>
+                    <button class="btn-3d btn-blue" onclick="Game.showHowToPlay()">
+                        📖 Cara Bermain
+                    </button>
+                </div>
+                <div>
+                    <span class="credit-pill">✨ Created by Cikgu Dessy ✨</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== 2. LAYAR CARA BERMAIN ==================== -->
+        <section id="screen-howto" class="screen">
+            <div class="card-3d" style="max-width: 740px;">
+                <h2 style="font-family: var(--font-title); font-size: 2rem; color: #92400E; margin-bottom: 12px;">
+                    📖 Cara Bermain & Belajar Pola
+                </h2>
+                <p style="font-size: 1.05rem; color: #4B5563; margin-bottom: 16px; font-weight: 700;">
+                    <b>Pola Gambar</b> adalah susunan bentuk, warna, ukuran, atau arah yang <b>berulang secara teratur</b>.
+                </p>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; text-align: left; margin-bottom: 18px;">
+                    <div style="background: #FFF; padding: 14px; border-radius: 20px; border: 3px solid #F59E0B;">
+                        <h3 style="font-family: var(--font-title); color: #B45309; margin-bottom: 6px;">1. Mengenali Pola Berulang</h3>
+                        <p style="font-size: 0.95rem; margin-bottom: 8px;">Perhatikan kelompok gambar yang diulang terus-menerus:</p>
+                        <div style="background: #ECFDF5; padding: 8px; border-radius: 12px; text-align: center; font-size: 1.4rem; letter-spacing: 4px;">
+                            🔴🔵 | 🔴🔵 | 🔴<b>❓</b>
+                        </div>
+                        <p style="font-size: 0.88rem; color: #047857; margin-top: 6px; font-weight: 700;">
+                            Polanya adalah Merah-Biru, jadi setelah 🔴 pasti 🔵!
+                        </p>
+                    </div>
+
+                    <div style="background: #FFF; padding: 14px; border-radius: 20px; border: 3px solid #10B981;">
+                        <h3 style="font-family: var(--font-title); color: #047857; margin-bottom: 6px;">2. Menentukan Gambar ke-n</h3>
+                        <p style="font-size: 0.95rem; margin-bottom: 8px;">Untuk menebak urutan ke-10 atau ke-15 di Gua Kristal:</p>
+                        <p style="font-size: 0.9rem; color: #374151;">
+                            Hitung jumlah isi <b>1 kelompok pola</b> (misal 2 gambar atau 3 gambar), lalu lanjutkan hitungannya sampai urutan yang ditanyakan! Gunakan tombol <b>💡 Petunjuk</b> bila butuh bantuan.
+                        </p>
+                    </div>
+                </div>
+
+                <div style="background: #FEF3C7; border: 2px dashed #D97706; padding: 10px 16px; border-radius: 16px; margin-bottom: 18px; font-weight: 700; color: #92400E;">
+                    💡 <b>Tips Petualang:</b> Setiap jawaban benar memberimu <b>+10 Poin</b>, <b>Koin Emas</b>, dan membuka <b>Potongan Peta Harta Karun</b>!
+                </div>
+
+                <button class="btn-3d btn-green" onclick="Game.showTitleScreen()">
+                    ⬅️ Kembali ke Menu Utama
+                </button>
+            </div>
+        </section>
+
+        <!-- ==================== 3. LAYAR PETA PETUALANGAN ==================== -->
+        <section id="screen-map" class="screen">
+            <div class="card-3d">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <h2 style="font-family: var(--font-title); font-size: 1.75rem; color: #92400E;">
+                        🗺️ Peta Hutan Ajaib (5 Pos Petualangan)
+                    </h2>
+                    <button class="btn-3d btn-blue" style="padding: 8px 18px; font-size: 0.95rem;" onclick="Game.showTitleScreen()">
+                        🏠 Menu Awal
+                    </button>
+                </div>
+                <p style="color: #78350F; font-weight: 700; margin-top: 4px;">
+                    Pilih pos yang menyala untuk memecahkan teka-teki pola dan mengumpulkan potongan peta!
+                </p>
+
+                <!-- Interactive Tropical Map with Glowing Path -->
+                <div class="map-wrapper" id="map-container">
+                    <svg class="map-svg-layer" viewBox="0 0 800 350" preserveAspectRatio="none">
+                        <!-- River & Island Backdrop Details -->
+                        <path d="M 220 0 Q 260 180 180 350" stroke="#38BDF8" stroke-width="55" fill="none" opacity="0.65"/>
+                        <path d="M 220 0 Q 260 180 180 350" stroke="#BAE6FD" stroke-width="25" stroke-dasharray="15 20" fill="none" opacity="0.7"/>
+                        <!-- Cave Silhouette near Node 4 -->
+                        <ellipse cx="600" cy="95" rx="68" ry="45" fill="#312E81" opacity="0.35"/>
+                        <!-- Treasure Island Sand around Node 5 -->
+                        <ellipse cx="705" cy="240" rx="75" ry="52" fill="#FDE68A" stroke="#F59E0B" stroke-width="4"/>
+
+                        <!-- Background Dashed Trail -->
+                        <path d="M 95 255 Q 175 100 265 125 T 445 245 T 595 105 T 705 235" 
+                              stroke="#065F46" stroke-width="12" stroke-linecap="round" stroke-dasharray="16 16" fill="none" opacity="0.45"/>
+
+                        <!-- Glowing Active Progress Path -->
+                        <path id="map-glow-path" d="M 95 255 Q 175 100 265 125 T 445 245 T 595 105 T 705 235" 
+                              stroke="#FBBF24" stroke-width="10" stroke-linecap="round" fill="none"
+                              stroke-dasharray="1000" stroke-dashoffset="1000"
+                              style="transition: stroke-dashoffset 1s ease-in-out; filter: drop-shadow(0 0 8px #F59E0B);"/>
+                    </svg>
+
+                    <!-- 5 Level Nodes Rendered Dynamically by JS -->
+                    <div id="map-nodes-layer"></div>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; font-weight: 800; color: #78350F;">
+                    <span>🌟 Total Bintang: <span id="map-total-stars">0</span> / 15</span>
+                    <span>🧩 Potongan Peta Terkumpul: <span id="map-pieces-count">0</span> / 5</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== 4. LAYAR SOAL (GAMEPLAY) ==================== -->
+        <section id="screen-quiz" class="screen">
+            <div class="card-3d">
+                <div class="quiz-header-bar">
+                    <div class="level-badge-banner" id="quiz-level-title">
+                        Pos 1: Gerbang Hutan
+                    </div>
+                    <div style="font-family: var(--font-title); font-size: 1.15rem; color: #92400E;">
+                        Soal <span id="quiz-q-num">1</span> dari 3
+                    </div>
+                    <button class="btn-3d btn-gold" style="padding: 7px 18px; font-size: 0.98rem;" onclick="Game.triggerHint()">
+                        💡 Petunjuk Pola
+                    </button>
+                </div>
+
+                <!-- Companion Character & Question Prompt -->
+                <div class="question-prompt-box">
+                    <div id="quiz-companion-mini" style="width: 54px; height: 54px; flex-shrink: 0;">
+                        <!-- Expressive Mini Face SVG -->
+                        <svg viewBox="0 0 80 80" width="54" height="54">
+                            <circle cx="40" cy="40" r="36" fill="#FEF3C7" stroke="#F59E0B" stroke-width="4"/>
+                            <circle cx="28" cy="36" r="5" fill="#1E293B"/>
+                            <circle cx="52" cy="36" r="5" fill="#1E293B"/>
+                            <circle cx="26" cy="34" r="2" fill="#FFF"/>
+                            <circle cx="50" cy="34" r="2" fill="#FFF"/>
+                            <path id="mini-mouth" d="M 28 50 Q 40 60 52 50" stroke="#92400E" stroke-width="4" stroke-linecap="round" fill="none"/>
+                            <ellipse cx="40" cy="14" rx="28" ry="8" fill="#D97706"/>
+                        </svg>
+                    </div>
+                    <div class="question-text" id="quiz-question-text">
+                        Perhatikan pola warna di bawah ini! Gambar mana yang tepat untuk mengisi kotak kosong?
+                    </div>
+                </div>
+
+                <!-- Pattern Visual Sequence Stage -->
+                <div class="pattern-stage">
+                    <div class="pattern-items-row" id="pattern-sequence-row">
+                        <!-- Dynamically Populated Pattern Slots -->
+                    </div>
+                    <div class="hint-banner" id="quiz-hint-banner">
+                        🔍 Lihat bingkai berwarna merah dan biru! Itulah bagian kelompok pola yang terus berulang.
+                    </div>
+                </div>
+
+                <!-- 4 Answer Choices -->
+                <p style="font-family: var(--font-title); color: #78350F; margin-bottom: 10px; font-size: 1.05rem;">
+                    👇 Pilih salah satu gambar yang paling tepat:
+                </p>
+                <div class="choices-grid" id="quiz-choices-grid">
+                    <!-- 4 Choice Buttons Populated by JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== 5. LAYAR HASIL LEVEL ==================== -->
+        <section id="screen-level-result" class="screen">
+            <div class="card-3d" style="max-width: 560px;">
+                <h2 style="font-family: var(--font-title); font-size: 2.1rem; color: #047857;" id="result-title">
+                    🎉 Pos Selesai! 🎉
+                </h2>
+                <p style="font-weight: 700; color: #78350F; font-size: 1.1rem; margin-top: 4px;" id="result-subtitle">
+                    Kamu berhasil membuka jalan dan mendapat 1 Potongan Peta!
+                </p>
+
+                <!-- 3 Stars Display -->
+                <div id="result-stars-row" style="font-size: 3.6rem; margin: 16px 0; filter: drop-shadow(0 6px 8px rgba(0,0,0,0.25));">
+                    ⭐⭐⭐
+                </div>
+
+                <div style="background: #FFFBEB; border: 3px solid #F59E0B; border-radius: 22px; padding: 16px; margin-bottom: 20px; display: flex; justify-content: space-around;">
+                    <div>
+                        <div style="font-size: 0.9rem; font-weight: 700; color: #92400E;">SKOR TOTAL</div>
+                        <div style="font-family: var(--font-title); font-size: 1.8rem; color: #D97706;" id="result-score">30</div>
+                    </div>
+                    <div style="border-left: 2px dashed #FCD34D;"></div>
+                    <div>
+                        <div style="font-size: 0.9rem; font-weight: 700; color: #92400E;">KOIN EMAS</div>
+                        <div style="font-family: var(--font-title); font-size: 1.8rem; color: #D97706;" id="result-coins">3</div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                    <button class="btn-3d btn-orange" onclick="Game.replayCurrentLevel()">
+                        🔄 Ulangi Pos Ini
+                    </button>
+                    <button class="btn-3d btn-green" onclick="Game.showMapScreen()">
+                        🗺️ Lanjut ke Peta
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== 6. LAYAR KEMENANGAN AKHIR ==================== -->
+        <section id="screen-victory" class="screen">
+            <div class="card-3d" style="max-width: 650px;">
+                <h1 style="font-family: var(--font-title); font-size: clamp(1.8rem, 4vw, 2.5rem); color: #B45309; text-shadow: 0 2px 0 #FDE68A;">
+                    🏆 HARTA KARUN DITEMUKAN! 🏆
+                </h1>
+                <p style="font-size: 1.1rem; font-weight: 700; color: #047857; margin-top: 4px;">
+                    Luar biasa! Kamu berhasil menyelesaikan seluruh teka-teki Pola Gambar di Hutan Ajaib!
+                </p>
+
+                <!-- Glowing Open 3D Treasure Chest SVG -->
+                <div style="margin: 14px auto; width: 210px; height: 175px; position: relative; animation: floatSlow 3s ease-in-out infinite;">
+                    <svg viewBox="0 0 220 180" width="210" height="175" style="filter: drop-shadow(0 12px 20px rgba(0,0,0,0.4));">
+                        <defs>
+                            <radialGradient id="treasureGlow" cx="50%" cy="50%" r="50%">
+                                <stop offset="0%" stop-color="#FEF08A" stop-opacity="1"/>
+                                <stop offset="60%" stop-color="#F59E0B" stop-opacity="0.5"/>
+                                <stop offset="100%" stop-color="#F59E0B" stop-opacity="0"/>
+                            </radialGradient>
+                            <linearGradient id="chestWood" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" stop-color="#B45309"/>
+                                <stop offset="100%" stop-color="#78350F"/>
+                            </linearGradient>
+                            <linearGradient id="chestGold" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#FEF08A"/>
+                                <stop offset="50%" stop-color="#F59E0B"/>
+                                <stop offset="100%" stop-color="#B45309"/>
+                            </linearGradient>
+                        </defs>
+                        <!-- Magical Sunburst Glow -->
+                        <circle cx="110" cy="85" r="85" fill="url(#treasureGlow)"/>
+                        <!-- Open Chest Lid -->
+                        <path d="M 35 65 Q 110 15 185 65 L 175 85 L 45 85 Z" fill="url(#chestWood)" stroke="url(#chestGold)" stroke-width="6"/>
+                        <!-- Overflowing Gold Coins & Gems -->
+                        <circle cx="75" cy="82" r="14" fill="#FBBF24"/>
+                        <circle cx="100" cy="74" r="16" fill="#F59E0B"/>
+                        <circle cx="130" cy="78" r="15" fill="#FBBF24"/>
+                        <circle cx="152" cy="84" r="12" fill="#FDE047"/>
+                        <!-- Ruby & Emerald Gems inside chest -->
+                        <polygon points="90,68 102,55 114,68 102,82" fill="#EF4444" stroke="#FECACA" stroke-width="2"/>
+                        <polygon points="125,65 137,52 149,65 137,79" fill="#10B981" stroke="#A7F3D0" stroke-width="2"/>
+                        <polygon points="62,74 72,62 82,74 72,86" fill="#3B82F6" stroke="#BFDBFE" stroke-width="2"/>
+                        <!-- Chest Base Box -->
+                        <path d="M 35 85 L 185 85 L 172 155 L 48 155 Z" fill="url(#chestWood)" stroke="url(#chestGold)" stroke-width="6"/>
+                        <!-- Center Gold Lock Plate -->
+                        <rect x="96" y="78" width="28" height="34" rx="8" fill="url(#chestGold)" stroke="#78350F" stroke-width="3"/>
+                        <circle cx="110" cy="92" r="5" fill="#78350F"/>
+                        <!-- Sparkles -->
+                        <text x="35" y="45" font-size="22">✨</text>
+                        <text x="165" y="40" font-size="24">✨</text>
+                        <text x="102" y="30" font-size="22">💎</text>
+                    </svg>
+                </div>
+
+                <!-- Final Scoreboard -->
+                <div style="background: #FFFFFF; border: 4px solid #F59E0B; border-radius: 24px; padding: 16px; margin-bottom: 16px; display: flex; justify-content: space-around; flex-wrap: wrap; gap: 12px;">
+                    <div>
+                        <div style="font-size: 0.85rem; font-weight: 800; color: #78350F;">SKOR AKHIR</div>
+                        <div style="font-family: var(--font-title); font-size: 2rem; color: #059669;" id="victory-score">150</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.85rem; font-weight: 800; color: #78350F;">KOIN EMAS</div>
+                        <div style="font-family: var(--font-title); font-size: 2rem; color: #D97706;" id="victory-coins">15</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.85rem; font-weight: 800; color: #78350F;">TOTAL BINTANG</div>
+                        <div style="font-family: var(--font-title); font-size: 2rem; color: #EAB308;" id="victory-stars">15 ⭐</div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;">
+                    <button class="btn-3d btn-green" onclick="Game.resetAndPlayAgain()">
+                        🔄 Main Lagi (Soal Acak Baru)
+                    </button>
+                    <button class="btn-3d btn-blue" onclick="Game.showMapScreen()">
+                        🗺️ Lihat Peta
+                    </button>
+                </div>
+
+                <div style="margin-top: 12px;">
+                    <span class="credit-pill">✨ Created by Cikgu Dessy ✨</span>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- MODAL FEEDBACK JAWABAN (BENAR / SALAH RAMAH ANAK) -->
+    <div class="feedback-overlay" id="feedback-modal">
+        <div class="feedback-card">
+            <div id="feedback-emoji" style="font-size: 3.5rem; margin-bottom: 6px;">🌟</div>
+            <h3 id="feedback-title" style="font-family: var(--font-title); font-size: 1.75rem; color: #047857; margin-bottom: 8px;">
+                Hebat Sekali!
+            </h3>
+            <p id="feedback-message" style="font-size: 1.05rem; font-weight: 700; color: #78350F; margin-bottom: 18px; line-height: 1.45;">
+                Kamu berhasil menemukan pola yang tepat! +10 Poin & +1 Koin Emas!
+            </p>
+            <button class="btn-3d btn-green" id="feedback-btn" onclick="Game.closeFeedbackModal()">
+                Lanjutkan ➡️
+            </button>
+        </div>
+    </div>
+
+    <!-- PERSISTENT FOOTER CREDIT -->
+    <footer class="persistent-footer">
+        <span>🌿 SD Kelas 4 - Pola Gambar</span>
+        <span>Created by Cikgu Dessy</span>
+    </footer>
+
+    <!-- ==================== JAVASCRIPT ENGINE ==================== -->
+    <script>
+        /* ================================================================
+         * 1. WEB AUDIO API SYNTHESIZER (Tanpa File Eksternal)
+         * ================================================================ */
+        const SoundFX = {
+            ctx: null,
+            muted: false,
+
+            init() {
+                if (!this.ctx) {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (AudioCtx) this.ctx = new AudioCtx();
+                }
+                if (this.ctx && this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            },
+
+            toggleMute() {
+                this.init();
+                this.muted = !this.muted;
+                const btn = document.getElementById('btn-sound');
+                btn.textContent = this.muted ? '🔇' : '🔊';
+                if (!this.muted) this.playClick();
+            },
+
+            playTone(freq, type, duration, delay = 0, vol = 0.18) {
+                if (this.muted) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const now = this.ctx.currentTime + delay;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, now);
+
+                gain.gain.setValueAtTime(0.001, now);
+                gain.gain.linearRampToValueAtTime(vol, now + 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start(now);
+                osc.stop(now + duration + 0.02);
+            },
+
+            playClick() {
+                this.playTone(520, 'sine', 0.09, 0, 0.15);
+            },
+
+            playHint() {
+                this.playTone(587.33, 'triangle', 0.15, 0, 0.16);
+                this.playTone(880, 'sine', 0.25, 0.1, 0.16);
+            },
+
+            playCorrect() {
+                // Cheerful Pixar-like coin & chime arpeggio
+                this.playTone(523.25, 'triangle', 0.14, 0, 0.2);    // C5
+                this.playTone(659.25, 'triangle', 0.14, 0.1, 0.2);  // E5
+                this.playTone(783.99, 'triangle', 0.14, 0.2, 0.2);  // G5
+                this.playTone(1046.50, 'sine', 0.35, 0.3, 0.24);    // C6
+            },
+
+            playWrong() {
+                // Gentle soft encouraging boop
+                this.playTone(330, 'sine', 0.18, 0, 0.16);
+                this.playTone(261.63, 'sine', 0.28, 0.15, 0.16);
+            },
+
+            playLevelComplete() {
+                const notes = [523.25, 659.25, 783.99, 1046.5, 783.99, 1046.5];
+                const times = [0, 0.12, 0.24, 0.36, 0.52, 0.66];
+                notes.forEach((n, i) => {
+                    this.playTone(n, 'triangle', 0.22, times[i], 0.22);
+                });
+            },
+
+            playVictoryFanfare() {
+                const melody = [
+                    { f: 523.25, d: 0.15, t: 0 },
+                    { f: 659.25, d: 0.15, t: 0.15 },
+                    { f: 783.99, d: 0.15, t: 0.30 },
+                    { f: 1046.5, d: 0.30, t: 0.45 },
+                    { f: 987.77, d: 0.15, t: 0.80 },
+                    { f: 1046.5, d: 0.55, t: 0.96 }
+                ];
+                melody.forEach(m => this.playTone(m.f, 'triangle', m.d, m.t, 0.25));
+            }
+        };
+
+        /* ================================================================
+         * 2. PIXAR 3D SHAPE & ITEM SVG GENERATOR
+         * ================================================================ */
+        const ShapeRenderer = {
+            colors: {
+                red:    { light: '#FCA5A5', main: '#EF4444', dark: '#991B1B', name: 'Merah' },
+                blue:   { light: '#93C5FD', main: '#3B82F6', dark: '#1E40AF', name: 'Biru' },
+                yellow: { light: '#FEF08A', main: '#FBBF24', dark: '#B45309', name: 'Kuning' },
+                green:  { light: '#6EE7B7', main: '#10B981', dark: '#065F46', name: 'Hijau' },
+                purple: { light: '#E9D5FF', main: '#A855F7', dark: '#6B21A8', name: 'Ungu' },
+                orange: { light: '#FDBA74', main: '#F97316', dark: '#9A3412', name: 'Oranye' }
+            },
+
+            /**
+             * Render 3D glossy shape inside a slot or choice button
+             * @param {Object} item - { shape, color, size, dir }
+             */
+            renderSVG(item) {
+                const c = this.colors[item.color || 'yellow'];
+                const uid = `${item.shape}_${item.color}_${item.size || 'lg'}_${item.dir || 'up'}_${Math.random().toString(36).substr(2, 5)}`;
+                const scale = item.size === 'sm' ? 0.56 : (item.size === 'md' ? 0.76 : 1.0);
+
+                let rot = 0;
+                if (item.dir === 'right') rot = 90;
+                else if (item.dir === 'down') rot = 180;
+                else if (item.dir === 'left') rot = 270;
+
+                let shapeMarkup = '';
+
+                switch (item.shape) {
+                    case 'circle':
+                        shapeMarkup = `
+                            <circle cx="50" cy="52" r="34" fill="url(#grad_${uid})" />
+                            <ellipse cx="38" cy="36" rx="12" ry="7" transform="rotate(-25 38 36)" fill="rgba(255,255,255,0.65)" />
+                        `;
+                        break;
+
+                    case 'square':
+                        shapeMarkup = `
+                            <rect x="18" y="20" width="64" height="64" rx="16" fill="url(#grad_${uid})" />
+                            <rect x="26" y="26" width="32" height="10" rx="5" fill="rgba(255,255,255,0.6)" />
+                        `;
+                        break;
+
+                    case 'triangle':
+                        shapeMarkup = `
+                            <path d="M50 15 Q54 15 57 20 L84 72 Q88 80 78 82 L22 82 Q12 80 16 72 L43 20 Q46 15 50 15 Z" fill="url(#grad_${uid})" />
+                            <ellipse cx="45" cy="40" rx="6" ry="12" transform="rotate(22 45 40)" fill="rgba(255,255,255,0.55)" />
+                        `;
+                        break;
+
+                    case 'star':
+                        shapeMarkup = `
+                            <polygon points="50,12 61,36 88,39 68,57 73,84 50,70 27,84 32,57 12,39 39,36" stroke="${c.dark}" stroke-width="2" stroke-linejoin="round" fill="url(#grad_${uid})" />
+                            <circle cx="44" cy="42" r="7" fill="rgba(255,255,255,0.55)" />
+                        `;
+                        break;
+
+                    case 'crystal':
+                        shapeMarkup = `
+                            <polygon points="50,10 80,38 68,86 32,86 20,38" fill="url(#grad_${uid})" stroke="${c.light}" stroke-width="2"/>
+                            <polygon points="50,10 66,38 50,86 34,38" fill="rgba(255,255,255,0.28)"/>
+                            <polygon points="50,14 36,38 50,48" fill="rgba(255,255,255,0.55)"/>
+                        `;
+                        break;
+
+                    case 'arrow':
+                        shapeMarkup = `
+                            <g transform="rotate(${rot} 50 50)">
+                                <path d="M50 12 L84 48 L65 48 L65 85 L35 85 L35 48 L16 48 Z" stroke="${c.dark}" stroke-width="2.5" stroke-linejoin="round" fill="url(#grad_${uid})" />
+                                <ellipse cx="44" cy="42" rx="6" ry="12" fill="rgba(255,255,255,0.5)" />
+                            </g>
+                        `;
+                        break;
+
+                    case 'leaf':
+                        shapeMarkup = `
+                            <g transform="rotate(${rot} 50 50)">
+                                <path d="M50 12 Q85 35 75 72 Q50 88 25 72 Q15 35 50 12 Z" fill="url(#grad_${uid})" />
+                                <path d="M50 22 L50 85" stroke="${c.light}" stroke-width="4" stroke-linecap="round"/>
+                                <path d="M50 45 L66 36 M50 60 L68 50 M50 52 L34 42" stroke="${c.light}" stroke-width="3" stroke-linecap="round"/>
+                            </g>
+                        `;
+                        break;
+                }
+
+                // Size indicator label for clarity on Level 3 (Size patterns)
+                let badge = '';
+                if (item.showSizeLabel) {
+                    const lbl = item.size === 'sm' ? 'Kecil' : (item.size === 'md' ? 'Sedang' : 'Besar');
+                    badge = `<text x="50" y="96" text-anchor="middle" font-size="14" font-weight="800" fill="#374151">${lbl}</text>`;
+                }
+
+                return `
+                    <svg viewBox="0 0 100 100" width="62" height="62" style="overflow:visible; filter: drop-shadow(0 4px 5px rgba(0,0,0,0.22));">
+                        <defs>
+                            <radialGradient id="grad_${uid}" cx="35%" cy="30%" r="70%">
+                                <stop offset="0%" stop-color="${c.light}" />
+                                <stop offset="55%" stop-color="${c.main}" />
+                                <stop offset="100%" stop-color="${c.dark}" />
+                            </radialGradient>
+                        </defs>
+                        <g transform="translate(50,50) scale(${scale}) translate(-50,-50)">
+                            ${shapeMarkup}
+                        </g>
+                        ${badge}
+                    </svg>
+                `;
+            },
+
+            isSameItem(a, b) {
+                return a.shape === b.shape &&
+                       a.color === b.color &&
+                       (a.size || 'lg') === (b.size || 'lg') &&
+                       (a.dir || 'up') === (b.dir || 'up');
+            }
+        };
+
+        /* ================================================================
+         * 3. GENERATOR SOAL ACAK (5 LEVEL x 3 SOAL = 15 SOAL)
+         * ================================================================ */
+        const QuestionGenerator = {
+            pickRandom(arr) {
+                return arr[Math.floor(Math.random() * arr.length)];
+            },
+
+            shuffle(arr) {
+                const copy = [...arr];
+                for (let i = copy.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [copy[i], copy[j]] = [copy[j], copy[i]];
+                }
+                return copy;
+            },
+
+            generateDistractors(correctItem, pool, count = 3) {
+                const distractors = [];
+                const shuffledPool = this.shuffle(pool);
+                for (const candidate of shuffledPool) {
+                    if (!ShapeRenderer.isSameItem(candidate, correctItem) &&
+                        !distractors.some(d => ShapeRenderer.isSameItem(d, candidate))) {
+                        distractors.push(candidate);
+                        if (distractors.length === count) break;
+                    }
+                }
+                return this.shuffle([correctItem, ...distractors]);
+            },
+
+            /**
+             * Builds a set of 3 randomized questions for a requested level (1..5)
+             */
+            createQuestionsForLevel(levelIndex) {
+                const questions = [];
+
+                // LEVEL 1: Gerbang Hutan - Pola Warna Sederhana (ABAB, AABB, ABC)
+                if (levelIndex === 0) {
+                    const colorKeys = ['red', 'blue', 'yellow', 'green', 'purple', 'orange'];
+                    const patterns = [
+                        { type: 'ABAB', len: 2, total: 6, missingIdx: 5 },
+                        { type: 'ABC',  len: 3, total: 6, missingIdx: 5 },
+                        { type: 'AABB', len: 4, total: 8, missingIdx: 6 }
+                    ];
+
+                    patterns.forEach((pat) => {
+                        const cols = this.shuffle(colorKeys);
+                        let unit = [];
+                        if (pat.type === 'ABAB') unit = [{ shape: 'circle', color: cols[0] }, { shape: 'circle', color: cols[1] }];
+                        if (pat.type === 'ABC')  unit = [{ shape: 'circle', color: cols[0] }, { shape: 'circle', color: cols[1] }, { shape: 'circle', color: cols[2] }];
+                        if (pat.type === 'AABB') unit = [{ shape: 'circle', color: cols[0] }, { shape: 'circle', color: cols[0] }, { shape: 'circle', color: cols[1] }, { shape: 'circle', color: cols[1] }];
+
+                        const sequence = [];
+                        for (let i = 0; i < pat.total; i++) {
+                            sequence.push({ ...unit[i % unit.length] });
+                        }
+                        const correctAnswer = { ...sequence[pat.missingIdx] };
+                        const pool = colorKeys.map(c => ({ shape: 'circle', color: c }));
+
+                        const unitNames = unit.map(u => ShapeRenderer.colors[u.color].name).join(' - ');
+                        questions.push({
+                            prompt: 'Perhatikan urutan bola warna di Gerbang Hutan! Warna apa yang tepat untuk mengisi kotak bertanda tanya?',
+                            sequence,
+                            missingIndex: pat.missingIdx,
+                            unitLength: unit.length,
+                            correctAnswer,
+                            choices: this.generateDistractors(correctAnswer, pool, 3),
+                            explanation: `Pola berulangnya adalah setiap ${unit.length} gambar: (${unitNames}). Jadi urutan berikutnya adalah warna ${ShapeRenderer.colors[correctAnswer.color].name}!`
+                        });
+                    });
+                }
+
+                // LEVEL 2: Sungai Berbatu - Pola Bentuk Berulang (Lingkaran, Segitiga, Persegi, Bintang)
+                else if (levelIndex === 1) {
+                    const shapes = ['circle', 'triangle', 'square', 'star'];
+                    const shapeNames = { circle: 'Lingkaran', triangle: 'Segitiga', square: 'Persegi', star: 'Bintang' };
+
+                    const configs = [
+                        { unitTypes: [0, 1], total: 6, miss: 5 },
+                        { unitTypes: [0, 1, 2], total: 6, miss: 4 },
+                        { unitTypes: [0, 0, 1], total: 6, miss: 5 }
+                    ];
+
+                    configs.forEach((cfg, idx) => {
+                        const shf = this.shuffle(shapes);
+                        const fixedColor = ['blue', 'green', 'orange'][idx % 3];
+                        const unit = cfg.unitTypes.map(t => ({ shape: shf[t], color: fixedColor }));
+                        const sequence = [];
+                        for (let i = 0; i < cfg.total; i++) {
+                            sequence.push({ ...unit[i % unit.length] });
+                        }
+                        const correctAnswer = { ...sequence[cfg.miss] };
+                        const pool = shapes.map(s => ({ shape: s, color: fixedColor }));
+                        const unitDesc = unit.map(u => shapeNames[u.shape]).join(' - ');
+
+                        questions.push({
+                            prompt: 'Batu ajaib di sungai tersusun mengikuti pola bentuk! Bentuk manakah yang melengkapi kotak kosong?',
+                            sequence,
+                            missingIndex: cfg.miss,
+                            unitLength: unit.length,
+                            correctAnswer,
+                            choices: this.generateDistractors(correctAnswer, pool, 3),
+                            explanation: `Kelompok bentuk yang berulang adalah (${unitDesc}). Maka kotak kosong tersebut berisi bentuk ${shapeNames[correctAnswer.shape]}!`
+                        });
+                    });
+                }
+
+                // LEVEL 3: Pohon Raksasa - Pola Ukuran (Besar-Kecil) & Arah Panah
+                else if (levelIndex === 2) {
+                    // Soal 1: Ukuran Besar - Kecil
+                    const col1 = this.pickRandom(['green', 'yellow', 'orange']);
+                    const unit1 = [
+                        { shape: 'star', color: col1, size: 'lg', showSizeLabel: true },
+                        { shape: 'star', color: col1, size: 'sm', showSizeLabel: true }
+                    ];
+                    const seq1 = Array.from({ length: 6 }, (_, i) => ({ ...unit1[i % 2] }));
+                    const ans1 = { ...seq1[5] };
+                    const pool1 = [
+                        { shape: 'star', color: col1, size: 'lg', showSizeLabel: true },
+                        { shape: 'star', color: col1, size: 'md', showSizeLabel: true },
+                        { shape: 'star', color: col1, size: 'sm', showSizeLabel: true },
+                        { shape: 'circle', color: col1, size: 'sm', showSizeLabel: true }
+                    ];
+                    questions.push({
+                        prompt: 'Perhatikan pola ukuran Besar dan Kecil di dahan Pohon Raksasa! Gambar mana yang selanjutnya?',
+                        sequence: seq1,
+                        missingIndex: 5,
+                        unitLength: 2,
+                        correctAnswer: ans1,
+                        choices: this.generateDistractors(ans1, pool1, 3),
+                        explanation: 'Polanya bergantian: Besar - Kecil - Besar - Kecil. Setelah ukuran Besar adalah ukuran Kecil!'
+                    });
+
+                    // Soal 2: Arah Panah (Atas - Kanan - Bawah)
+                    const dirs = ['up', 'right', 'down', 'left'];
+                    const dirNames = { up: 'Atas', right: 'Kanan', down: 'Bawah', left: 'Kiri' };
+                    const unit2 = [
+                        { shape: 'arrow', color: 'blue', dir: 'up' },
+                        { shape: 'arrow', color: 'blue', dir: 'right' },
+                        { shape: 'arrow', color: 'blue', dir: 'down' }
+                    ];
+                    const seq2 = Array.from({ length: 6 }, (_, i) => ({ ...unit2[i % 3] }));
+                    const ans2 = { ...seq2[4] }; // Missing index 4
+                    const pool2 = dirs.map(d => ({ shape: 'arrow', color: 'blue', dir: d }));
+                    questions.push({
+                        prompt: 'Panah penunjuk jalan di Pohon Raksasa berputar teratur! Arah panah mana yang tepat untuk mengisi kotak kosong?',
+                        sequence: seq2,
+                        missingIndex: 4,
+                        unitLength: 3,
+                        correctAnswer: ans2,
+                        choices: this.generateDistractors(ans2, pool2, 3),
+                        explanation: `Pola arah panah berulang setiap 3 langkah: (Atas - Kanan - Bawah). Jadi jawabannya adalah panah arah ${dirNames[ans2.dir]}!`
+                    });
+
+                    // Soal 3: Ukuran Besar - Sedang - Kecil
+                    const unit3 = [
+                        { shape: 'circle', color: 'purple', size: 'lg', showSizeLabel: true },
+                        { shape: 'circle', color: 'purple', size: 'md', showSizeLabel: true },
+                        { shape: 'circle', color: 'purple', size: 'sm', showSizeLabel: true }
+                    ];
+                    const seq3 = Array.from({ length: 6 }, (_, i) => ({ ...unit3[i % 3] }));
+                    const ans3 = { ...seq3[5] };
+                    const pool3 = [
+                        { shape: 'circle', color: 'purple', size: 'lg', showSizeLabel: true },
+                        { shape: 'circle', color: 'purple', size: 'md', showSizeLabel: true },
+                        { shape: 'circle', color: 'purple', size: 'sm', showSizeLabel: true },
+                        { shape: 'square', color: 'purple', size: 'sm', showSizeLabel: true }
+                    ];
+                    questions.push({
+                        prompt: 'Buah ajaib tersusun dari ukuran Besar, Sedang, lalu Kecil. Ukuran manakah untuk kotak terakhir?',
+                        sequence: seq3,
+                        missingIndex: 5,
+                        unitLength: 3,
+                        correctAnswer: ans3,
+                        choices: this.generateDistractors(ans3, pool3, 3),
+                        explanation: 'Urutan ukurannya adalah Besar - Sedang - Kecil. Jadi gambar ke-6 adalah ukuran Kecil!'
+                    });
+                }
+
+                // LEVEL 4: Gua Kristal - Pola Gabungan (Warna+Bentuk) & Menentukan Gambar ke-10 atau ke-15
+                else if (levelIndex === 3) {
+                    // Soal 1: Pola Gabungan Warna + Bentuk
+                    const unit1 = [
+                        { shape: 'crystal', color: 'red' },
+                        { shape: 'star', color: 'yellow' },
+                        { shape: 'circle', color: 'blue' }
+                    ];
+                    const seq1 = Array.from({ length: 6 }, (_, i) => ({ ...unit1[i % 3] }));
+                    const ans1 = { ...seq1[5] };
+                    const pool1 = [
+                        { shape: 'crystal', color: 'red' },
+                        { shape: 'star', color: 'yellow' },
+                        { shape: 'circle', color: 'blue' },
+                        { shape: 'crystal', color: 'blue' },
+                        { shape: 'star', color: 'red' }
+                    ];
+                    questions.push({
+                        prompt: 'Kristal berkilau memiliki pola gabungan bentuk dan warna! Gambar mana yang melengkapi urutan ke-6?',
+                        sequence: seq1,
+                        missingIndex: 5,
+                        unitLength: 3,
+                        correctAnswer: ans1,
+                        choices: this.generateDistractors(ans1, pool1, 3),
+                        explanation: 'Pola berulang setiap 3 gambar: (Kristal Merah - Bintang Kuning - Lingkaran Biru). Urutan ke-6 adalah Lingkaran Biru!'
+                    });
+
+                    // Soal 2: Menentukan gambar ke-10 (Pola 2 unsur: ganjil/genap)
+                    const unit2 = [
+                        { shape: 'crystal', color: 'purple' },
+                        { shape: 'star', color: 'green' }
+                    ];
+                    const seq2 = Array.from({ length: 6 }, (_, i) => ({ ...unit2[i % 2], indexLabel: i + 1 }));
+                    const targetN2 = 10;
+                    const ans2 = { ...unit2[(targetN2 - 1) % 2] };
+                    const pool2 = [
+                        { shape: 'crystal', color: 'purple' },
+                        { shape: 'star', color: 'green' },
+                        { shape: 'crystal', color: 'green' },
+                        { shape: 'star', color: 'purple' }
+                    ];
+                    questions.push({
+                        prompt: `Perhatikan 6 gambar pertama di bawah ini! Jika pola terus dilanjutkan, gambar apakah yang muncul pada urutan ke-${targetN2}?`,
+                        sequence: seq2,
+                        missingIndex: -1, // Special nth-term question badge
+                        targetNth: targetN2,
+                        unitLength: 2,
+                        correctAnswer: ans2,
+                        choices: this.generateDistractors(ans2, pool2, 3),
+                        explanation: `1 kelompok pola berisi 2 gambar. Urutan ganjil (1,3,5,7,9) adalah Kristal Ungu, dan urutan genap (2,4,6,8,10) adalah Bintang Hijau! Jadi urutan ke-10 adalah Bintang Hijau.`
+                    });
+
+                    // Soal 3: Menentukan gambar ke-15 (Pola 3 unsur: kelipatan 3)
+                    const unit3 = [
+                        { shape: 'circle', color: 'red' },
+                        { shape: 'triangle', color: 'yellow' },
+                        { shape: 'crystal', color: 'blue' }
+                    ];
+                    const seq3 = Array.from({ length: 6 }, (_, i) => ({ ...unit3[i % 3], indexLabel: i + 1 }));
+                    const targetN3 = 15;
+                    const ans3 = { ...unit3[(targetN3 - 1) % 3] };
+                    const pool3 = [
+                        { shape: 'circle', color: 'red' },
+                        { shape: 'triangle', color: 'yellow' },
+                        { shape: 'crystal', color: 'blue' },
+                        { shape: 'square', color: 'green' }
+                    ];
+                    questions.push({
+                        prompt: `Tantangan Gua Kristal! Jika pola 3 gambar ini terus berulang, gambar apakah yang berada pada urutan ke-${targetN3}?`,
+                        sequence: seq3,
+                        missingIndex: -1,
+                        targetNth: targetN3,
+                        unitLength: 3,
+                        correctAnswer: ans3,
+                        choices: this.generateDistractors(ans3, pool3, 3),
+                        explanation: `Pola berulang setiap 3 gambar. Urutan ke-3, 6, 9, 12, dan ke-15 selalu jatuh pada gambar ketiga di dalam kelompok, yaitu Kristal Biru!`
+                    });
+                }
+
+                // LEVEL 5: Pulau Harta Karun - Tantangan Akhir Campuran
+                else if (levelIndex === 4) {
+                    // Soal 1: Melengkapi bagian tengah pola yang rumpang (Warna + Bentuk + Ukuran)
+                    const unit1 = [
+                        { shape: 'star', color: 'yellow', size: 'lg' },
+                        { shape: 'crystal', color: 'blue', size: 'sm' },
+                        { shape: 'circle', color: 'red', size: 'lg' }
+                    ];
+                    const seq1 = Array.from({ length: 6 }, (_, i) => ({ ...unit1[i % 3] }));
+                    const ans1 = { ...seq1[3] }; // Missing index 3 (urutan ke-4)
+                    const pool1 = [
+                        { shape: 'star', color: 'yellow', size: 'lg' },
+                        { shape: 'crystal', color: 'blue', size: 'sm' },
+                        { shape: 'circle', color: 'red', size: 'lg' },
+                        { shape: 'star', color: 'red', size: 'sm' }
+                    ];
+                    questions.push({
+                        prompt: 'Kunci Pertama Peti Harta Karun! Lengkapi bagian pola yang hilang pada urutan ke-4 di bawah ini!',
+                        sequence: seq1,
+                        missingIndex: 3,
+                        unitLength: 3,
+                        correctAnswer: ans1,
+                        choices: this.generateDistractors(ans1, pool1, 3),
+                        explanation: 'Kelompok polanya terdiri dari 3 gambar: (Bintang Kuning Besar - Kristal Biru Kecil - Lingkaran Merah Besar). Urutan ke-4 kembali ke gambar pertama yaitu Bintang Kuning Besar!'
+                    });
+
+                    // Soal 2: Pola Arah + Warna
+                    const unit2 = [
+                        { shape: 'arrow', color: 'green', dir: 'up' },
+                        { shape: 'arrow', color: 'orange', dir: 'right' },
+                        { shape: 'arrow', color: 'purple', dir: 'down' }
+                    ];
+                    const seq2 = Array.from({ length: 6 }, (_, i) => ({ ...unit2[i % 3] }));
+                    const ans2 = { ...seq2[5] };
+                    const pool2 = [
+                        { shape: 'arrow', color: 'green', dir: 'up' },
+                        { shape: 'arrow', color: 'orange', dir: 'right' },
+                        { shape: 'arrow', color: 'purple', dir: 'down' },
+                        { shape: 'arrow', color: 'purple', dir: 'left' }
+                    ];
+                    questions.push({
+                        prompt: 'Kunci Kedua! Perhatikan arah dan warna panah harta karun berikut. Manakah panah ke-6?',
+                        sequence: seq2,
+                        missingIndex: 5,
+                        unitLength: 3,
+                        correctAnswer: ans2,
+                        choices: this.generateDistractors(ans2, pool2, 3),
+                        explanation: 'Polanya berulang setiap 3 panah: (Hijau Atas - Oranye Kanan - Ungu Bawah). Jadi urutan ke-6 adalah Panah Ungu menghadap Bawah!'
+                    });
+
+                    // Soal 3: Menentukan gambar ke-12 untuk membuka gembok terakhir
+                    const unit3 = [
+                        { shape: 'crystal', color: 'orange' },
+                        { shape: 'crystal', color: 'blue' },
+                        { shape: 'star', color: 'yellow' }
+                    ];
+                    const seq3 = Array.from({ length: 6 }, (_, i) => ({ ...unit3[i % 3], indexLabel: i + 1 }));
+                    const targetN3 = 12;
+                    const ans3 = { ...unit3[(targetN3 - 1) % 3] };
+                    const pool3 = [
+                        { shape: 'crystal', color: 'orange' },
+                        { shape: 'crystal', color: 'blue' },
+                        { shape: 'star', color: 'yellow' },
+                        { shape: 'circle', color: 'green' }
+                    ];
+                    questions.push({
+                        prompt: `Gembok Terakhir Peti Harta Karun! Berdasarkan pola 3 gambar ini, gambar apakah yang berada di urutan ke-${targetN3}?`,
+                        sequence: seq3,
+                        missingIndex: -1,
+                        targetNth: targetN3,
+                        unitLength: 3,
+                        correctAnswer: ans3,
+                        choices: this.generateDistractors(ans3, pool3, 3),
+                        explanation: `Pola terdiri dari 3 gambar. Karena 12 habis dibagi 3 (3, 6, 9, 12), maka gambar ke-12 sama dengan gambar ke-3, yaitu Bintang Kuning!`
+                    });
+                }
+
+                return questions;
+            }
+        };
+
+        /* ================================================================
+         * 4. STATE & CONTROLLER UTAMA GAME
+         * ================================================================ */
+        const Game = {
+            levels: [
+                { id: 0, name: 'Gerbang Hutan',      icon: '⛩️', x: 12, y: 72, unlocked: true,  completed: false, stars: 0 },
+                { id: 1, name: 'Sungai Berbatu',     icon: '🏞️', x: 33, y: 36, unlocked: false, completed: false, stars: 0 },
+                { id: 2, name: 'Pohon Raksasa',      icon: '🌳', x: 55, y: 70, unlocked: false, completed: false, stars: 0 },
+                { id: 3, name: 'Gua Kristal',        icon: '💎', x: 74, y: 30, unlocked: false, completed: false, stars: 0 },
+                { id: 4, name: 'Pulau Harta Karun',  icon: '🏝️', x: 88, y: 67, unlocked: false, completed: false, stars: 0 }
+            ],
+
+            score: 0,
+            coins: 0,
+            hearts: 3,
+            currentLevelIdx: 0,
+            currentQuestions: [],
+            currentQIdx: 0,
+            mistakesInLevel: 0,
+            hintActive: false,
+            questionAnswered: false,
+            pendingNextStep: null,
+
+            switchScreen(screenId) {
+                document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+                document.getElementById(screenId).classList.add('active');
+
+                const hud = document.getElementById('hud-panel');
+                if (screenId === 'screen-title' || screenId === 'screen-howto') {
+                    hud.style.visibility = 'hidden';
+                } else {
+                    hud.style.visibility = 'visible';
+                }
+                this.updateHUD();
+            },
+
+            updateHUD() {
+                document.getElementById('hud-hearts').textContent = '❤️'.repeat(this.hearts) + '🖤'.repeat(Math.max(0, 3 - this.hearts));
+                document.getElementById('hud-score').textContent = this.score;
+                document.getElementById('hud-coins').textContent = this.coins;
+
+                this.levels.forEach((lvl, idx) => {
+                    const el = document.getElementById(`piece-${idx}`);
+                    if (el) {
+                        if (lvl.completed) el.classList.add('collected');
+                        else el.classList.remove('collected');
+                    }
+                });
+            },
+
+            showTitleScreen() {
+                SoundFX.playClick();
+                this.switchScreen('screen-title');
+            },
+
+            showHowToPlay() {
+                SoundFX.playClick();
+                this.switchScreen('screen-howto');
+            },
+
+            startAdventure() {
+                SoundFX.playClick();
+                this.showMapScreen();
+            },
+
+            showMapScreen() {
+                SoundFX.playClick();
+                this.renderMapNodes();
+                this.switchScreen('screen-map');
+            },
+
+            renderMapNodes() {
+                const container = document.getElementById('map-nodes-layer');
+                container.innerHTML = '';
+
+                let totalStars = 0;
+                let completedCount = 0;
+
+                this.levels.forEach((lvl, idx) => {
+                    totalStars += lvl.stars;
+                    if (lvl.completed) completedCount++;
+
+                    const stateClass = lvl.completed ? 'completed' : (lvl.unlocked ? 'unlocked' : 'locked');
+                    const node = document.createElement('div');
+                    node.className = `map-node ${stateClass}`;
+                    node.style.left = `${lvl.x}%`;
+                    node.style.top = `${lvl.y}%`;
+
+                    let starsHtml = '';
+                    if (lvl.completed || lvl.stars > 0) {
+                        starsHtml = `<div class="map-node-stars">${'⭐'.repeat(lvl.stars)}${'☆'.repeat(3 - lvl.stars)}</div>`;
+                    }
+
+                    node.innerHTML = `
+                        ${starsHtml}
+                        <div class="map-node-circle">
+                            ${lvl.unlocked ? lvl.icon : '🔒'}
+                        </div>
+                        <div class="map-node-label">Pos ${idx + 1}: ${lvl.name}</div>
+                    `;
+
+                    node.onclick = () => {
+                        if (lvl.unlocked) {
+                            this.startLevel(idx);
+                        } else {
+                            SoundFX.playWrong();
+                        }
+                    };
+
+                    container.appendChild(node);
+                });
+
+                // Update glowing trail progress on SVG path
+                const unlockedHighest = this.levels.reduce((acc, l, idx) => (l.unlocked ? idx : acc), 0);
+                const progressRatio = unlockedHighest / (this.levels.length - 1);
+                const dashOffset = 1000 - (progressRatio * 1000);
+                const pathEl = document.getElementById('map-glow-path');
+                if (pathEl) pathEl.style.strokeDashoffset = dashOffset;
+
+                document.getElementById('map-total-stars').textContent = totalStars;
+                document.getElementById('map-pieces-count').textContent = completedCount;
+            },
+
+            startLevel(levelIdx) {
+                SoundFX.playClick();
+                this.currentLevelIdx = levelIdx;
+                this.hearts = 3;
+                this.mistakesInLevel = 0;
+                this.currentQIdx = 0;
+                this.currentQuestions = QuestionGenerator.createQuestionsForLevel(levelIdx);
+
+                // Adjust ambient background theme slightly based on level
+                ForestScene.setTheme(levelIdx);
+
+                this.switchScreen('screen-quiz');
+                this.renderCurrentQuestion();
+            },
+
+            replayCurrentLevel() {
+                this.startLevel(this.currentLevelIdx);
+            },
+
+            renderCurrentQuestion() {
+                this.questionAnswered = false;
+                this.hintActive = false;
+                document.getElementById('quiz-hint-banner').style.display = 'none';
+
+                const lvl = this.levels[this.currentLevelIdx];
+                const q = this.currentQuestions[this.currentQIdx];
+
+                document.getElementById('quiz-level-title').textContent = `Pos ${this.currentLevelIdx + 1}: ${lvl.name}`;
+                document.getElementById('quiz-q-num').textContent = this.currentQIdx + 1;
+                document.getElementById('quiz-question-text').textContent = q.prompt;
+
+                // Reset companion face expression to happy
+                document.getElementById('mini-mouth').setAttribute('d', 'M 28 50 Q 40 60 52 50');
+
+                // Render Pattern Sequence Row
+                const seqRow = document.getElementById('pattern-sequence-row');
+                seqRow.innerHTML = '';
+
+                q.sequence.forEach((item, idx) => {
+                    const slot = document.createElement('div');
+                    slot.className = 'pattern-slot';
+                    slot.dataset.idx = idx;
+
+                    if (idx === q.missingIndex) {
+                        slot.classList.add('missing-slot');
+                        slot.id = 'active-missing-slot';
+                        slot.innerHTML = `<span style="font-family:var(--font-title); font-size:2.2rem; color:#D97706;">❓</span>`;
+                    } else {
+                        slot.innerHTML = ShapeRenderer.renderSVG(item);
+                    }
+
+                    const numBadge = document.createElement('span');
+                    numBadge.className = 'slot-index-num';
+                    numBadge.textContent = idx + 1;
+                    slot.appendChild(numBadge);
+
+                    seqRow.appendChild(slot);
+                });
+
+                // If it's an nth-term question (missingIndex === -1), append ellipsis + target slot
+                if (q.missingIndex === -1 && q.targetNth) {
+                    const dots = document.createElement('div');
+                    dots.style.fontFamily = 'var(--font-title)';
+                    dots.style.fontSize = '1.8rem';
+                    dots.style.color = '#047857';
+                    dots.style.padding = '0 6px';
+                    dots.textContent = '... ➡️';
+                    seqRow.appendChild(dots);
+
+                    const targetSlot = document.createElement('div');
+                    targetSlot.className = 'pattern-slot missing-slot';
+                    targetSlot.id = 'active-missing-slot';
+                    targetSlot.innerHTML = `
+                        <span style="font-family:var(--font-title); font-size:1.8rem; color:#D97706;">❓</span>
+                        <span class="slot-index-num" style="font-size:0.78rem; color:#B45309;">Ke-${q.targetNth}</span>
+                    `;
+                    seqRow.appendChild(targetSlot);
+                }
+
+                // Render 4 Answer Choices
+                const grid = document.getElementById('quiz-choices-grid');
+                grid.innerHTML = '';
+
+                q.choices.forEach((choiceItem) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'choice-btn';
+                    btn.innerHTML = ShapeRenderer.renderSVG(choiceItem);
+                    btn.onclick = () => this.handleAnswerSelection(btn, choiceItem);
+                    grid.appendChild(btn);
+                });
+
+                this.updateHUD();
+            },
+
+            triggerHint() {
+                SoundFX.playHint();
+                const q = this.currentQuestions[this.currentQIdx];
+                const slots = document.querySelectorAll('#pattern-sequence-row .pattern-slot');
+
+                slots.forEach((slot) => {
+                    const idx = parseInt(slot.dataset.idx, 10);
+                    if (!isNaN(idx)) {
+                        const groupNum = Math.floor(idx / q.unitLength) % 3;
+                        slot.classList.remove('hint-group-0', 'hint-group-1', 'hint-group-2');
+                        slot.classList.add(`hint-group-${groupNum}`);
+                    }
+                });
+
+                const banner = document.getElementById('quiz-hint-banner');
+                banner.innerHTML = `💡 <b>Petunjuk Pola:</b> Perhatikan setiap <b>${q.unitLength} kotak</b> yang diberi bingkai warna senada! Itulah kelompok pola yang terus diulang.`;
+                banner.style.display = 'block';
+            },
+
+            handleAnswerSelection(btnEl, chosenItem) {
+                if (this.questionAnswered) return;
+
+                const q = this.currentQuestions[this.currentQIdx];
+                const isCorrect = ShapeRenderer.isSameItem(chosenItem, q.correctAnswer);
+
+                if (isCorrect) {
+                    this.questionAnswered = true;
+                    btnEl.classList.add('correct-choice');
+                    SoundFX.playCorrect();
+
+                    // Fill missing slot with the correct graphic
+                    const missingSlot = document.getElementById('active-missing-slot');
+                    if (missingSlot) {
+                        missingSlot.classList.remove('missing-slot');
+                        missingSlot.innerHTML = ShapeRenderer.renderSVG(q.correctAnswer);
+                    }
+
+                    // Update points & coins
+                    this.score += 10;
+                    this.coins += 1;
+                    this.updateHUD();
+
+                    // Launch celebratory sparkles
+                    FXCanvas.spawnBurst(window.innerWidth / 2, window.innerHeight / 2, 32);
+
+                    // Show friendly feedback modal
+                    setTimeout(() => {
+                        this.showFeedbackModal(
+                            true,
+                            '🌟 Hebat Sekali! 🌟',
+                            `Jawabanmu tepat! ${q.explanation}\n\n(+10 Poin & +1 Koin Emas 🪙)`,
+                            () => this.advanceToNextQuestion()
+                        );
+                    }, 450);
+
+                } else {
+                    btnEl.classList.add('wrong-choice');
+                    btnEl.disabled = true;
+                    SoundFX.playWrong();
+
+                    this.mistakesInLevel++;
+                    this.hearts = Math.max(1, this.hearts - 1);
+                    this.updateHUD();
+
+                    // Activate hint automatically to help student understand
+                    this.triggerHint();
+
+                    // Show encouraging gentle feedback
+                    this.showFeedbackModal(
+                        false,
+                        '💪 Ayo Coba Lagi, Kamu Pasti Bisa!',
+                        `Belum tepat, Penjelajah Cilik! Coba amati petunjuk: ${q.explanation}`,
+                        null
+                    );
+                }
+            },
+
+            showFeedbackModal(isSuccess, title, message, callback) {
+                const modal = document.getElementById('feedback-modal');
+                document.getElementById('feedback-emoji').textContent = isSuccess ? '🎉' : '🤗';
+                const titleEl = document.getElementById('feedback-title');
+                titleEl.textContent = title;
+                titleEl.style.color = isSuccess ? '#047857' : '#D97706';
+
+                document.getElementById('feedback-message').textContent = message;
+                document.getElementById('feedback-btn').textContent = isSuccess ? 'Lanjut ➡️' : 'Coba Lagi 🔍';
+
+                this.pendingNextStep = callback;
+                modal.classList.add('show');
+            },
+
+            closeFeedbackModal() {
+                SoundFX.playClick();
+                document.getElementById('feedback-modal').classList.remove('show');
+                if (typeof this.pendingNextStep === 'function') {
+                    const fn = this.pendingNextStep;
+                    this.pendingNextStep = null;
+                    fn();
+                }
+            },
+
+            advanceToNextQuestion() {
+                if (this.currentQIdx < this.currentQuestions.length - 1) {
+                    this.currentQIdx++;
+                    this.renderCurrentQuestion();
+                } else {
+                    this.finishLevel();
+                }
+            },
+
+            finishLevel() {
+                const lvl = this.levels[this.currentLevelIdx];
+                lvl.completed = true;
+
+                // Calculate stars (1 to 3) based on accuracy
+                let earnedStars = 3;
+                if (this.mistakesInLevel === 1) earnedStars = 2;
+                else if (this.mistakesInLevel >= 2) earnedStars = 1;
+
+                if (earnedStars > lvl.stars) lvl.stars = earnedStars;
+
+                // Unlock next level if available
+                if (this.currentLevelIdx + 1 < this.levels.length) {
+                    this.levels[this.currentLevelIdx + 1].unlocked = true;
+                }
+
+                this.updateHUD();
+
+                // Check if this was Level 5 (Pulau Harta Karun) -> Final Victory Screen
+                if (this.currentLevelIdx === 4) {
+                    SoundFX.playVictoryFanfare();
+                    FXCanvas.startContinuousConfetti(120);
+
+                    const totalStars = this.levels.reduce((sum, l) => sum + l.stars, 0);
+                    document.getElementById('victory-score').textContent = this.score;
+                    document.getElementById('victory-coins').textContent = this.coins;
+                    document.getElementById('victory-stars').textContent = `${totalStars} / 15 ⭐`;
+
+                    this.switchScreen('screen-victory');
+                } else {
+                    SoundFX.playLevelComplete();
+                    FXCanvas.spawnBurst(window.innerWidth / 2, window.innerHeight / 3, 55);
+
+                    document.getElementById('result-title').textContent = `🎉 Pos ${this.currentLevelIdx + 1} Selesai! 🎉`;
+                    document.getElementById('result-subtitle').textContent = `Kamu membuka jalan dari ${lvl.name} & mendapat Potongan Peta ke-${this.currentLevelIdx + 1}!`;
+                    document.getElementById('result-stars-row').textContent = '⭐'.repeat(earnedStars) + '☆'.repeat(3 - earnedStars);
+                    document.getElementById('result-score').textContent = this.score;
+                    document.getElementById('result-coins').textContent = this.coins;
+
+                    this.switchScreen('screen-level-result');
+                }
+            },
+
+            resetAndPlayAgain() {
+                SoundFX.playClick();
+                this.score = 0;
+                this.coins = 0;
+                this.hearts = 3;
+                this.levels.forEach((l, i) => {
+                    l.unlocked = (i === 0);
+                    l.completed = false;
+                    l.stars = 0;
+                });
+                ForestScene.setTheme(0);
+                this.showMapScreen();
+            }
+        };
+
+        /* ================================================================
+         * 5. PIXAR 3D TROPICAL FOREST BACKGROUND CANVAS ANIMATION
+         * ================================================================ */
+        const ForestScene = {
+            canvas: null,
+            ctx: null,
+            width: 0,
+            height: 0,
+            themeIdx: 0,
+            butterflies: [],
+            sparkles: [],
+            time: 0,
+
+            init() {
+                this.canvas = document.getElementById('bg-canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.resize();
+                window.addEventListener('resize', () => this.resize());
+
+                // Create animated butterflies
+                for (let i = 0; i < 6; i++) {
+                    this.butterflies.push({
+                        x: Math.random() * window.innerWidth,
+                        y: Math.random() * (window.innerHeight * 0.65),
+                        vx: 0.6 + Math.random() * 0.8,
+                        vy: (Math.random() - 0.5) * 0.4,
+                        phase: Math.random() * Math.PI * 2,
+                        color: ['#FBBF24', '#F472B6', '#60A5FA', '#A78BFA'][i % 4]
+                    });
+                }
+
+                // Create floating magic forest fireflies / sparkles
+                for (let i = 0; i < 28; i++) {
+                    this.sparkles.push({
+                        x: Math.random() * window.innerWidth,
+                        y: Math.random() * window.innerHeight,
+                        r: 2 + Math.random() * 3.5,
+                        vy: -0.25 - Math.random() * 0.4,
+                        alpha: Math.random()
+                    });
+                }
+            },
+
+            setTheme(idx) {
+                this.themeIdx = idx;
+            },
+
+            resize() {
+                this.width = this.canvas.width = window.innerWidth;
+                this.height = this.canvas.height = window.innerHeight;
+            },
+
+            draw() {
+                this.time += 0.02;
+                const ctx = this.ctx;
+                const w = this.width;
+                const h = this.height;
+
+                // 1. Warm Cinematic Sky Gradient (Adapts subtly for Crystal Cave Level 4)
+                const skyGrad = ctx.createLinearGradient(0, 0, 0, h);
+                if (this.themeIdx === 3) {
+                    // Crystal Cave mystical purple-blue glow
+                    skyGrad.addColorStop(0, '#1E1B4B');
+                    skyGrad.addColorStop(0.5, '#312E81');
+                    skyGrad.addColorStop(1, '#064E3B');
+                } else {
+                    // Warm Golden-Green Tropical Canopy
+                    skyGrad.addColorStop(0, '#FEF08A');
+                    skyGrad.addColorStop(0.35, '#6EE7B7');
+                    skyGrad.addColorStop(0.75, '#059669');
+                    skyGrad.addColorStop(1, '#064E3B');
+                }
+                ctx.fillStyle = skyGrad;
+                ctx.fillRect(0, 0, w, h);
+
+                // 2. Volumetric Sunbeams Filtering Through Canopy
+                ctx.save();
+                for (let i = 0; i < 4; i++) {
+                    const beamX = (w * 0.18) + i * (w * 0.24) + Math.sin(this.time * 0.5 + i) * 20;
+                    const beamGrad = ctx.createLinearGradient(beamX, 0, beamX + 120, h * 0.85);
+                    beamGrad.addColorStop(0, 'rgba(254, 249, 195, 0.26)');
+                    beamGrad.addColorStop(1, 'rgba(254, 249, 195, 0)');
+                    ctx.fillStyle = beamGrad;
+                    ctx.beginPath();
+                    ctx.moveTo(beamX - 40, 0);
+                    ctx.lineTo(beamX + 60, 0);
+                    ctx.lineTo(beamX + 240, h);
+                    ctx.lineTo(beamX + 40, h);
+                    ctx.closePath();
+                    ctx.fill();
+                }
+                ctx.restore();
+
+                // 3. Soft Distant Lush Hills
+                ctx.fillStyle = this.themeIdx === 3 ? '#1E293B' : '#047857';
+                ctx.beginPath();
+                ctx.arc(w * 0.2, h * 0.95, w * 0.35, Math.PI, 0);
+                ctx.arc(w * 0.78, h * 0.95, w * 0.38, Math.PI, 0);
+                ctx.fill();
+
+                // 4. Shimmering River at Bottom
+                const riverGrad = ctx.createLinearGradient(0, h * 0.82, 0, h);
+                riverGrad.addColorStop(0, '#38BDF8');
+                riverGrad.addColorStop(1, '#0284C7');
+                ctx.fillStyle = riverGrad;
+                ctx.beginPath();
+                ctx.moveTo(0, h * 0.88);
+                ctx.quadraticCurveTo(w * 0.5, h * 0.82 + Math.sin(this.time) * 6, w, h * 0.88);
+                ctx.lineTo(w, h);
+                ctx.lineTo(0, h);
+                ctx.closePath();
+                ctx.fill();
+
+                // 5. Swaying Tropical Canopy Leaves in Top Corners
+                this.drawTropicalCluster(ctx, 0, 0, 1);
+                this.drawTropicalCluster(ctx, w, 0, -1);
+
+                // 6. Floating Magical Fireflies / Sparkles
+                this.sparkles.forEach(s => {
+                    s.y += s.vy;
+                    if (s.y < 0) s.y = h;
+                    const glowAlpha = 0.35 + 0.45 * Math.sin(this.time * 2 + s.x);
+                    ctx.fillStyle = `rgba(254, 240, 138, ${glowAlpha})`;
+                    ctx.beginPath();
+                    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+
+                // 7. Animated Fluttering Butterflies
+                this.butterflies.forEach(b => {
+                    b.x += b.vx;
+                    b.y += b.vy + Math.sin(this.time * 3 + b.phase) * 0.5;
+                    if (b.x > w + 30) b.x = -30;
+
+                    const wingFlap = Math.abs(Math.sin(this.time * 7 + b.phase));
+                    ctx.save();
+                    ctx.translate(b.x, b.y);
+                    ctx.fillStyle = b.color;
+                    ctx.beginPath();
+                    ctx.ellipse(-5 * wingFlap, -3, 8 * wingFlap, 5, -0.3, 0, Math.PI * 2);
+                    ctx.ellipse(5 * wingFlap, -3, 8 * wingFlap, 5, 0.3, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                });
+            },
+
+            drawTropicalCluster(ctx, x, y, flipX) {
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.scale(flipX, 1);
+                const sway = Math.sin(this.time * 1.2) * 0.05;
+                ctx.rotate(sway);
+
+                const leafColors = ['#065F46', '#059669', '#10B981'];
+                for (let i = 0; i < 3; i++) {
+                    ctx.fillStyle = leafColors[i];
+                    ctx.beginPath();
+                    ctx.moveTo(0, 0);
+                    ctx.quadraticCurveTo(90 + i * 25, 30 + i * 20, 140 - i * 15, 110 + i * 15);
+                    ctx.quadraticCurveTo(40, 90, 0, 0);
+                    ctx.fill();
+                }
+                ctx.restore();
+            }
+        };
+
+        /* ================================================================
+         * 6. CONFETTI & PARTICLE BURST OVERLAY CANVAS
+         * ================================================================ */
+        const FXCanvas = {
+            canvas: null,
+            ctx: null,
+            particles: [],
+
+            init() {
+                this.canvas = document.getElementById('fx-canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.resize();
+                window.addEventListener('resize', () => this.resize());
+            },
+
+            resize() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+            },
+
+            spawnBurst(x, y, count = 35) {
+                const palette = ['#FBBF24', '#34D399', '#60A5FA', '#F87171', '#A78BFA', '#FDE047'];
+                for (let i = 0; i < count; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const speed = 3 + Math.random() * 7;
+                    this.particles.push({
+                        x,
+                        y,
+                        vx: Math.cos(angle) * speed,
+                        vy: Math.sin(angle) * speed - 2,
+                        size: 6 + Math.random() * 6,
+                        color: palette[i % palette.length],
+                        rot: Math.random() * Math.PI,
+                        vRot: (Math.random() - 0.5) * 0.2,
+                        life: 1.0,
+                        decay: 0.014 + Math.random() * 0.01
+                    });
+                }
+            },
+
+            startContinuousConfetti(count = 100) {
+                const palette = ['#FBBF24', '#10B981', '#3B82F6', '#EF4444', '#E879F9'];
+                for (let i = 0; i < count; i++) {
+                    this.particles.push({
+                        x: Math.random() * this.canvas.width,
+                        y: -20 - Math.random() * 350,
+                        vx: (Math.random() - 0.5) * 2.5,
+                        vy: 2.2 + Math.random() * 3.2,
+                        size: 8 + Math.random() * 6,
+                        color: palette[i % palette.length],
+                        rot: Math.random() * Math.PI,
+                        vRot: (Math.random() - 0.5) * 0.15,
+                        life: 1.0,
+                        decay: 0.004
+                    });
+                }
+            },
+
+            updateAndDraw() {
+                const ctx = this.ctx;
+                ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+                for (let i = this.particles.length - 1; i >= 0; i--) {
+                    const p = this.particles[i];
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += 0.12; // gentle gravity
+                    p.rot += p.vRot;
+                    p.life -= p.decay;
+
+                    if (p.life <= 0 || p.y > this.canvas.height + 40) {
+                        this.particles.splice(i, 1);
+                        continue;
+                    }
+
+                    ctx.save();
+                    ctx.globalAlpha = Math.max(0, p.life);
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate(p.rot);
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.65);
+                    ctx.restore();
+                }
+            }
+        };
+
+        /* ================================================================
+         * 7. INITIALIZATION & MAIN ANIMATION LOOP
+         * ================================================================ */
+        function masterAnimationLoop() {
+            ForestScene.draw();
+            FXCanvas.updateAndDraw();
+            requestAnimationFrame(masterAnimationLoop);
+        }
+
+        window.onload = function () {
+            ForestScene.init();
+            FXCanvas.init();
+            Game.updateHUD();
+            masterAnimationLoop();
+        };
+    </script>
+</body>
+</html>
